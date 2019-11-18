@@ -43,7 +43,7 @@ class ServerUtil {
                 }
 
                 override fun onResponse(call: Call, response: Response) {
-                    var body = response.body!!.string()
+                    var body = response.body()!!.string()
                     var json:JSONObject = JSONObject(body)
                     handler?.onResponse(json)
 
@@ -80,7 +80,7 @@ class ServerUtil {
                 }
 
                 override fun onResponse(call: Call, response: Response) {
-                    var body = response.body!!.string()
+                    var body = response.body()!!.string()
                     var json:JSONObject = JSONObject(body)
                     handler?.onResponse(json)
 
@@ -89,6 +89,38 @@ class ServerUtil {
 
             })
         }
+
+        fun getRequestMyInfo(context: Context, handler: JonResponseHandler?) {
+            var client = OkHttpClient()
+
+            var urlBuilder = HttpUrl.parse("${BASE_URL}/my_info")!!.newBuilder()
+//            GET방식의 파라미터를 첨부하는 방법
+            urlBuilder.addEncodedQueryParameter("device_token", "text")
+
+//            url 최종 확정
+            val requestUrl = urlBuilder.build().toString()
+            Log.d("요청URL", requestUrl)
+
+            val request = Request.Builder()
+                .url(requestUrl)
+                .header("X-Http-Token", ContextUtil.getUserToken(context))
+                .build()
+
+            client.newCall(request).enqueue(object : Callback{
+                override fun onFailure(call: Call, e: IOException) {
+                    Log.e("서버통신에러", e.localizedMessage)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    val body = response.body()!!.string()
+                    val json = JSONObject(body)
+                    handler?.onResponse(json)
+
+                }
+
+            })
+        }
+
 
     }
 }
